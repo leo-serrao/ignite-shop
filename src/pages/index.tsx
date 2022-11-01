@@ -1,20 +1,73 @@
-import { styled } from "../styles"
+import { HomeContainer, Product } from "../styles/pages/home"
+import { GetStaticProps } from "next";
+import { stripe } from "../lib/stripe";
+import Image from "next/image"
+import Stripe from "stripe";
 
-const Button = styled('button', {
-  backgroundColor: '$green300',
-  borderRadius: 4,
-  cursor: 'pointer',
-  width: '10rem',
-  height: '5rem',
-  fontSize: '1rem',
+import { useKeenSlider } from 'keen-slider/react';
+import 'keen-slider/keen-slider.min.css';
 
-  '&:hover': {
-    filter: 'brightness(0.8)'
-  }
-})
+interface HomeProps {
+  products: {
+    id: string,
+    imageUrl: string,
+    name: string,
+    price: number
+  }[],
+}
 
-export default function Home() {
+export default function Home({ products }: HomeProps) {
+  const [sliderRef] = useKeenSlider({
+    slides: {
+      perView: 2.7,
+      spacing: 48,
+    }
+  })
   return (
-    <Button>Enviar</Button>
+    <HomeContainer ref={sliderRef} className="keen-slider">
+      {products.map(product => {
+        return (
+          <Product className="keen-slider__slide" key={product.id}>
+        <Image src={product.imageUrl} width={520} height={480} alt=""/>
+
+        <footer>
+          <strong>{product.name}</strong>
+          <span>{product.price}</span>
+        </footer>
+      </Product>
+        )
+      })}
+
+      
+    </HomeContainer>
   )
+}
+
+export const getStaticProps: GetStaticProps = async () => {
+  const response = await stripe.products.list({
+    expand: ['data.default_price']
+  });
+
+  const products = response.data.map(product => {
+    const price = product.default_price as Stripe.Price;
+
+    console.log(product.images[0])
+    
+    return {
+      id: product.id,
+      name: product.name,
+      imageUrl: product.images[0],
+      price: new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(price.unit_amount / 100),
+    }
+  })
+
+  return {
+    props: {
+      products
+    },
+    revalidate: 60 * 60 * 2, //2 hours
+  }
 }
