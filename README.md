@@ -6,7 +6,7 @@ In this project i developed a T-Shirt store, where you can see all the products 
 ### What technologies i used?
 This project was made in **React + TypeScript**, it was very helpful to understand the usage of an API to create transactions and manage products.
 
-If you're tying the App follow the steps bellow 😉
+If you're tying the App follow the steps bellow ⬇⬇
 
 1. Install dependencies
 ```jsx
